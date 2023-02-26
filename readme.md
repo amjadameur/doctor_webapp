@@ -34,6 +34,8 @@ $ cd Docker-compose
 $ docker compose up -d
 ```
 
+Finally access Web page from your browser: **http://localhost:8080**
+
 ### 3\. Build Docker manually:
 This shows how to build necessary docker images to run them manually
 

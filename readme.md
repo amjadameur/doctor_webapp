@@ -16,7 +16,7 @@ respectively.
 
 #### Run Vagrant VMs:
 ```console
-$ cd vagrant
+$ cd Vagrant
 $ vagrant up
 ```
 

@@ -26,28 +26,27 @@ Finally access Web page from your browser: **http://localhost**
 ### 2\. Docker compose:
 This starts two containers, one for Mariadb and another for Apache2/PHP.
 
-Webserver and Mysql can be accessed from port **8080** and **3306**
+Webserver and Mysql can be accessed from port **80** and **3306**
 respectively.
 
 #### Run compose containers:
 ```console
-$ cd Docker-compose
+$ cd Docker
 $ docker compose up -d
 ```
 
-Finally access Web page from your browser: **http://localhost:8080**
+Finally access Web page from your browser: **http://localhost**
 
 ### 3\. Build Docker manually:
 This shows how to build necessary docker images to run them manually
 
 #### Build web image:
 ```console
-$ docker build --tag aouledameur/doctorweb:latest .
+$ docker build --tag aouledameur/doctorweb:latest Docker/web
 ```
 #### Build mariadb image:
 ```console
-$ cd Docker-files
-$ docker build --tag aouledameur/doctordb:latest .
+$ docker build --tag aouledameur/doctordb:latest Docker/db
 ```
 
 #### Create docker network:
@@ -59,10 +58,10 @@ $ docker network create doctornet
 #### Run containers:
 ```console
 $ docker run -d -p 3306:3306 --name doctordb --network doctornet --network-alias db01 aouledameur/doctordb:latest
-$ docker run -d -p 8080:80 --name doctorweb --network doctornet aouledameur/doctorweb:latest
+$ docker run -d -p 80:80 --name doctorweb --network doctornet aouledameur/doctorweb:latest
 ```
 
-Finally access Web page from your browser: **http://localhost:8080**
+Finally access Web page from your browser: **http://localhost**
 
 ### 4\. Ansible AWS:
 This starts two EC2 instances, one for Mysql and another for Apache2.

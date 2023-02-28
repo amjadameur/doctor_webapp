@@ -13,6 +13,6 @@ services:
   web01:
     image: "aouledameur/doctorweb:latest"
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - db01

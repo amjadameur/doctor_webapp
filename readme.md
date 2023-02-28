@@ -7,6 +7,7 @@ The website sources are copied from **https://github.com/thegr8dev/doctorpatient
   * Vagrant.
   * Docker compose.
   * Build Docker manually.
+  * Ansible AWS
 
 ### 1\. Vagrant:
 This starts two VMs, one for Mysql and another for Apache2.
@@ -62,6 +63,18 @@ $ docker run -d -p 8080:80 --name doctorweb --network doctornet aouledameur/doct
 ```
 
 Finally access Web page from your browser: **http://localhost:8080**
+
+### 4\. Ansible AWS:
+This starts two EC2 instances, one for Mysql and another for Apache2.
+It also does necessary setup for security groups, route 53 and keypair
+
+#### Run playbook:
+```console
+$ cd Ansible
+$ ansible-playbook doctor.yaml
+```
+
+Finally access Web page from your browser: **http://<public_ip_ec2_doctorweb>**
 
 ### Webpage Credentials
 Admin login from webpage:

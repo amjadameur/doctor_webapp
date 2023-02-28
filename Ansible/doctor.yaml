@@ -1,0 +1,97 @@
+- name: AWS create resources for doctor portal project
+  hosts: localhost
+  gather_facts: no
+  vars:
+    region: us-east-1
+    route53_zone: doctorportal.in
+    db_record: "db01.{{ route53_zone }}"
+    key_name: doctor_key
+    instance_type: t2.micro
+    image_id: ami-09cd747c78a9add63
+    db_user_data: "{{ lookup('file', 'mysql.sh') }}"
+    web_user_data: "{{ lookup('file', 'web.sh') }}"
+    vpcid: vpc-0cbf184bace7599e1
+
+  tasks:
+  - name: Create a private zone
+    amazon.aws.route53_zone:
+      zone: "{{ route53_zone }}"
+      comment: Doctor Portal route 53 zone
+      vpc_id: "{{ vpcid }}"
+      vpc_region: "{{ region }}"
+
+  - name: create a new EC2 key pair, returns generated private key
+    amazon.aws.ec2_key:
+      name: "{{ key_name }}"
+    register: keypair
+
+  - name: Save private key
+    copy: content="{{ keypair.key.private_key }}" dest="./doctorkey.pem" mode=0600
+    when: keypair.changed
+
+  - name: Create doctorweb security group
+    amazon.aws.ec2_security_group:
+      name: "doctorweb-sg"
+      description: sg for doctor web
+      region: "{{ region }}"
+      rules:
+        - proto: tcp
+          ports:
+          - 80
+          cidr_ip: 0.0.0.0/0
+          rule_desc: allow doctorweb to access doctordb
+
+  - name: Create doctordb security group
+    amazon.aws.ec2_security_group:
+      name: "doctordb-sg"
+      description: sg for doctor mysql
+      region: "{{ region  }}"
+      rules:
+        - proto: tcp
+          ports:
+          - 3306
+          group_name: "doctorweb-sg"
+          rule_desc: allow doctorweb to access doctordb
+
+  - name: Start doctor db instance
+    amazon.aws.ec2_instance:
+      name: "doctordb"
+      key_name: "{{ key_name }}"
+      region: "{{ region }}"
+      instance_type: "{{ instance_type  }}"
+      image_id: "{{ image_id }}"
+      security_group: "doctordb-sg"
+      network:
+        assign_public_ip: true
+      user_data: "{{ db_user_data }}"
+      exact_count: 1
+      tags:
+        Project: doctorportal
+    register: ec2_db 
+
+  - name: Add A record for db instance
+    amazon.aws.route53:
+      state: present
+      zone: "{{ route53_zone }}"
+      private_zone: true
+      overwrite: true
+      record: "{{ db_record }}" 
+      type: A
+      ttl: 7200
+      value: "{{ ec2_db['instances'][0]['network_interfaces'][0]['private_ip_address'] }}"
+    when: ec2_db.changed
+
+  - name: Start doctor web instance
+    amazon.aws.ec2_instance:
+      name: "doctorweb"
+      key_name: "{{ key_name }}"
+      region: "{{ region }}"
+      instance_type: "{{ instance_type  }}"
+      image_id: "{{ image_id }}"
+      security_group: "doctorweb-sg"
+      network:
+        assign_public_ip: true
+      user_data: "{{ web_user_data }}"
+      exact_count: 1
+      tags:
+        Project: doctorportal
